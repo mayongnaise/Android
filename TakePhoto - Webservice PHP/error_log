@@ -1,0 +1,5 @@
+[26-Jan-2015 20:14:02 America/Los_Angeles] PHP Warning:  opendir(/uploads): failed to open dir: No such file or directory in /home/npools5/public_html/images/get_image_lists.php on line 4
+[26-Jan-2015 20:14:02 America/Los_Angeles] PHP Warning:  readdir() expects parameter 1 to be resource, boolean given in /home/npools5/public_html/images/get_image_lists.php on line 5
+[26-Jan-2015 20:14:02 America/Los_Angeles] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/npools5/public_html/images/get_image_lists.php:4) in /home/npools5/public_html/images/get_image_lists.php on line 13
+[26-Jan-2015 23:09:41 America/Los_Angeles] PHP Parse error:  syntax error, unexpected ';' in /home/npools5/public_html/images/fileUpload.php on line 14
+[26-Jan-2015 23:10:17 America/Los_Angeles] PHP Parse error:  syntax error, unexpected ';' in /home/npools5/public_html/images/fileUpload.php on line 14
