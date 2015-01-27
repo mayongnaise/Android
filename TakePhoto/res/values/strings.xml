@@ -1,0 +1,7 @@
+<resources>
+
+    <string name="app_name">TakePhoto</string>
+	<string name="take_photo">Take Photo</string>
+	<string name="uploaded">Uploaded!</string>
+	<string name="queue">On queue</string>
+</resources>
