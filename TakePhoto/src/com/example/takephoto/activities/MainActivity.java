@@ -1,7 +1,7 @@
 package com.example.takephoto.activities;
 
-
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,6 +26,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +40,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -145,37 +147,62 @@ public class MainActivity extends Activity{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	
+
+    	if(data!=null){
         // if the result is capturing Image
-        if (requestCode == CAMERA_REQUEST) {
-        	
-            if (resultCode == RESULT_OK) {
-            	
-            	pictureUri = data.getData();
-            	
-            	uriLists.add(pictureUri); // Save URI of captured image to ArrayList to handle uploading of each images
-            	
-				path = getPath(pictureUri);
+	        if (requestCode == CAMERA_REQUEST) {
+	        	
+	            if (resultCode == RESULT_OK) {
+	            	
+	            	//pictureUri = data.getData();
+	            	Bitmap photo = (Bitmap) data.getExtras().get("data");
+	            	pictureUri = getImageUri(getApplicationContext(), photo);
+	            	
+	            	if(pictureUri!=null){
+	            	
+		            	uriLists.add(pictureUri); // Save URI of captured image to ArrayList to handle uploading of each images
+		            	
+						path = getPath(pictureUri);
+						
+		            	// Compressing bitmap	
+		            	Bitmap usableBitmap = compressBitmap(pictureUri);
+					
+		            	// Adding each captured photo as table row
+						addCapturedPhotoToView(usableBitmap);
 				
-            	// Compressing bitmap	
-            	Bitmap usableBitmap = compressBitmap(pictureUri);
-			
-            	// Adding each captured photo as table row
-				addCapturedPhotoToView(usableBitmap);
-			
-            } else if (resultCode == RESULT_CANCELED) {                 
-                
-            	// Canceling camera will display this message
-                Toast.makeText(getApplicationContext(), "User cancelled image capture", Toast.LENGTH_SHORT).show();
-             
-            } else {
-            
-            	// Unable to make a successful capture
-                Toast.makeText(getApplicationContext(), "Sorry! Failed to capture image", Toast.LENGTH_SHORT).show();
-         
-            }
-         
-        }
-        
+	            	}
+	            	else{
+	            		
+	            		Toast.makeText(getApplicationContext(), "Unable to get picture URI.", Toast.LENGTH_SHORT).show();
+	            		
+	            	}
+	            } else if (resultCode == RESULT_CANCELED) {                 
+	                
+	            	// Canceling camera will display this message
+	                Toast.makeText(getApplicationContext(), "User cancelled image capture", Toast.LENGTH_SHORT).show();
+	             
+	            } else {
+	            
+	            	// Unable to make a successful capture
+	                Toast.makeText(getApplicationContext(), "Sorry! Failed to capture image", Toast.LENGTH_SHORT).show();
+	         
+	            }
+	         
+	        }
+    	}
+    	else{
+	    	 
+ 	    	Toast.makeText(getApplicationContext(), "Unable to get captured photo.", Toast.LENGTH_SHORT).show();
+ 	    
+ 	    }
+    
+    }
+    
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
     }
     
     // Add each photo to a Custom and Dynamic Table Rows
@@ -411,15 +438,13 @@ public class MainActivity extends Activity{
 	private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
 		 
 		// Getting Item Views
-		ProgressBar pBar = (ProgressBar) ((RelativeLayout)((LinearLayout) ((TableRow) items.getChildAt((int) 
-				view.imageItem.getTag())).getChildAt(0))
+		ProgressBar pBar = (ProgressBar) ((RelativeLayout)((LinearLayout) ((TableRow) items.getChildAt((Integer) view.imageItem.getTag())).getChildAt(0))
 				.getChildAt(1)).getChildAt(0);
-		TextView stat = (TextView) ((RelativeLayout)((LinearLayout) ((TableRow) items.getChildAt((int) 
-				view.imageItem.getTag())).getChildAt(0)).getChildAt(1)).getChildAt(1);
+		TextView stat = (TextView) ((RelativeLayout)((LinearLayout) ((TableRow) items.getChildAt((Integer) view.imageItem.getTag())).getChildAt(0)).getChildAt(1)).getChildAt(1);
 		
 		File sourceFile = null;
 		Uri localUri = null;
-		int index = (int) view.imageItem.getTag();
+		int index = (Integer) view.imageItem.getTag();
 		
 		@Override
 		protected void onPreExecute() {
@@ -555,7 +580,8 @@ public class MainActivity extends Activity{
 	
 	private String getPath(Uri uri) {
 	    String[]  data = { MediaStore.Images.Media.DATA };
-	    CursorLoader loader = new CursorLoader(getApplicationContext(), uri, data, null, null, null);
+	    
+	    CursorLoader loader = new CursorLoader(MainActivity.this, uri, data, null, null, null);
 	    Cursor cursor = loader.loadInBackground();
 	    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 	    cursor.moveToFirst();
